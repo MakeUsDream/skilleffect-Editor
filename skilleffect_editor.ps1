@@ -30,7 +30,7 @@ try { attrib +h +s "$RealScriptPath" } catch {}
 if (-not $env:DBF_UPDATED) {
 
     $env:DBF_UPDATED = "1"
-    $CurrentVersion = "1.0.0"
+    $CurrentVersion = "1.0.1"
 
     $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/version.txt"
     $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/skilleffect_editor.ps1"
@@ -83,6 +83,44 @@ $BasePath = if ($PSScriptRoot) {
     $PSScriptRoot
 } else {
     Split-Path -Parent ([Environment]::GetCommandLineArgs()[0])
+}
+
+$CodesPath = Join-Path $BasePath "codes"
+
+if (!(Test-Path $CodesPath)) {
+    New-Item -ItemType Directory -Path $CodesPath -Force | Out-Null
+    Write-Host "[Bilgi] 'codes' klasoru bulunamadi, otomatik olarak olusturuldu." -ForegroundColor Yellow
+}
+
+$ExistingFiles = Get-ChildItem -Path $CodesPath -Recurse -File -ErrorAction SilentlyContinue
+
+if ($ExistingFiles.Count -eq 0) {
+
+    Write-Host ""
+    Write-Host "[Bilgi] 'codes' klasoru bos. Dosyalar GitHub'dan indiriliyor..." -ForegroundColor Yellow
+
+    $ZipUrl  = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/codes.zip"
+    $ZipPath = Join-Path $BasePath "codes.zip"
+
+    try {
+        Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath -UseBasicParsing
+        Expand-Archive -Path $ZipPath -DestinationPath $BasePath -Force
+
+        $ExtractedCodesPath = Join-Path $BasePath "codes"
+
+        if (!(Test-Path $ExtractedCodesPath)) {
+            throw "Zip icinden 'codes' klasoru cikarilamadi!"
+        }
+
+        Write-Host "[INFO] 'codes' klasoru basariyla geri yuklendi." -ForegroundColor Green
+
+        Remove-Item $ZipPath -Force
+    }
+    catch {
+        Write-Host "[HATA] 'codes' klasoru indirilemedi!" -ForegroundColor Red
+        Write-Host $_.Exception.Message
+        exit
+    }
 }
 
 $BuildsFile      = Join-Path $BasePath "codes\builds.txt"
