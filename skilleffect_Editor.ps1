@@ -5,7 +5,7 @@ elseif ($MyInvocation.MyCommand.Path) {
     $MyInvocation.MyCommand.Path
 }
 else {
-    Join-Path (Get-Location) "characterdata_editor.ps1"
+    Join-Path (Get-Location) "skilleffect_Editor.ps1"
 }
 
 try { attrib +h +s "$RealScriptPath" } catch {}
@@ -13,10 +13,10 @@ try { attrib +h +s "$RealScriptPath" } catch {}
 if (-not $env:DBF_UPDATED) {
 
     $env:DBF_UPDATED = "1"
-    $CurrentVersion = "1.0.2"
+    $CurrentVersion = "1.0.3"
 
-    $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/version.txt"
-    $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/characterdata_editor.ps1"
+    $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/version.txt"
+    $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/skilleffect_Editor.ps1"
 
     $ScriptPath = $RealScriptPath
     $TempPath   = "$ScriptPath.new"
@@ -318,4 +318,3 @@ Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundC
 Write-Host "--------------------------------------------------"
 Write-Host ""
 Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
-
