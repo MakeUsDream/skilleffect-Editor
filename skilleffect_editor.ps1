@@ -13,7 +13,7 @@ try { attrib +h +s "$RealScriptPath" } catch {}
 if (-not $env:DBF_UPDATED) {
 
     $env:DBF_UPDATED = "1"
-    $CurrentVersion = "1.0.1"
+    $CurrentVersion = "1.0.2"
 
     $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/version.txt"
     $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/characterdata_editor.ps1"
@@ -318,3 +318,4 @@ Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundC
 Write-Host "--------------------------------------------------"
 Write-Host ""
 Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
+
