@@ -84,7 +84,7 @@ Write-Host "  Yapmak istediginiz .pk2 turunun ismini ya da temsili rakamini giri
 Write-Host ""
 Write-Host " -resimli / 1  -> Echidna Resimli Media.pk2 (EU/CHN Marks + Wizard/Cleric Effect Off)" -ForegroundColor DarkYellow
 Write-Host " -kelebek / 2  -> Podo Kelebek Media.pk2 (EU/CHN Marks + Wizard/Cleric Effect Off)" -ForegroundColor DarkYellow
-Write-Host " -resimli100 / 3  -> Echidna Resimli Media.pk2 (CHN Marks for only 100 cap + Heuksal/Pacheon/Cold/Lightning/Fire Effect Off)" -ForegroundColor DarkYellow
+Write-Host " -resimli100 / 3  -> Echidna Resimli Media.pk2 (CHN Marks for 100 cap + Heuksal/Pacheon/Cold/Light/Fire Effect Off)" -ForegroundColor DarkYellow
 Write-Host " -medusa / 4  -> Medusa Petrify Media.pk2 (Wizard + Dagger + Heuksal + Fire Nuke's)" -ForegroundColor DarkYellow
 Write-Host "--------------------------------------------------"
 Write-Host ""
@@ -318,4 +318,5 @@ Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundC
 Write-Host "--------------------------------------------------"
 Write-Host ""
 Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
+
 
