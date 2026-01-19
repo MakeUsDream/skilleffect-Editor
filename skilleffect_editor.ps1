@@ -1,20 +1,3 @@
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class Win32 {
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("kernel32.dll")]
-    public static extern IntPtr GetConsoleWindow();
-}
-"@
-
-$hwnd = [Win32]::GetConsoleWindow()
-if ($hwnd -ne [IntPtr]::Zero) {
-    [void][Win32]::ShowWindow($hwnd, 3)
-}
-
 $RealScriptPath = if ($PSCommandPath) {
     $PSCommandPath
 }
@@ -22,7 +5,7 @@ elseif ($MyInvocation.MyCommand.Path) {
     $MyInvocation.MyCommand.Path
 }
 else {
-    Join-Path (Get-Location) "skilleffect_editor.ps1"
+    Join-Path (Get-Location) "characterdata_editor.ps1"
 }
 
 try { attrib +h +s "$RealScriptPath" } catch {}
@@ -32,8 +15,8 @@ if (-not $env:DBF_UPDATED) {
     $env:DBF_UPDATED = "1"
     $CurrentVersion = "1.0.1"
 
-    $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/version.txt"
-    $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/skilleffect_editor.ps1"
+    $VersionUrl = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/version.txt"
+    $ScriptUrl  = "https://raw.githubusercontent.com/MakeUsDream/characterdata-Editor/main/characterdata_editor.ps1"
 
     $ScriptPath = $RealScriptPath
     $TempPath   = "$ScriptPath.new"
@@ -85,64 +68,24 @@ $BasePath = if ($PSScriptRoot) {
     Split-Path -Parent ([Environment]::GetCommandLineArgs()[0])
 }
 
-$CodesPath = Join-Path $BasePath "codes"
-
-if (!(Test-Path $CodesPath)) {
-    New-Item -ItemType Directory -Path $CodesPath -Force | Out-Null
-    Write-Host "[Bilgi] 'codes' klasoru bulunamadi, otomatik olarak olusturuldu." -ForegroundColor Yellow
-}
-
-$ExistingFiles = Get-ChildItem -Path $CodesPath -Recurse -File -ErrorAction SilentlyContinue
-
-if ($ExistingFiles.Count -eq 0) {
-
-    Write-Host ""
-    Write-Host "[Bilgi] 'codes' klasoru bos. Dosyalar GitHub'dan indiriliyor..." -ForegroundColor Yellow
-
-    $ZipUrl  = "https://raw.githubusercontent.com/MakeUsDream/skilleffect-Editor/main/codes.zip"
-    $ZipPath = Join-Path $BasePath "codes.zip"
-
-    try {
-        Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath -UseBasicParsing
-        Expand-Archive -Path $ZipPath -DestinationPath $BasePath -Force
-
-        $ExtractedCodesPath = Join-Path $BasePath "codes"
-
-        if (!(Test-Path $ExtractedCodesPath)) {
-            throw "Zip icinden 'codes' klasoru cikarilamadi!"
-        }
-
-        Write-Host "[INFO] 'codes' klasoru basariyla geri yuklendi." -ForegroundColor Green
-
-        Remove-Item $ZipPath -Force
-    }
-    catch {
-        Write-Host "[HATA] 'codes' klasoru indirilemedi!" -ForegroundColor Red
-        Write-Host $_.Exception.Message
-        exit
-    }
-}
-
-$BuildsFile      = Join-Path $BasePath "codes\builds.txt"
-$CodesFolder     = Join-Path $BasePath "codes\resimli"
-$CodesFolderKelebek = Join-Path $BasePath "codes\kelebek"
-$CodesFolderCleric = Join-Path $BasePath "codes\cleric"
-$CodesFolderWizard = Join-Path $BasePath "codes\wizard"
-
+$BuildsFile      = Join-Path $BasePath "allcodes\builds.txt"
 $SkillEffectFile = Join-Path $BasePath "skilleffect.txt"
 
 Clear-Host
 
 Write-Host "--------------------------------------------------"
-Write-Host "skilleffect dosyasini duzenlemeyi kolaylastirmak icin tasarlanmis bir uygulamadir." -ForegroundColor Yellow
-Write-Host "Created by Echidna" -ForegroundColor Yellow
-Write-Host "Discord: @makeusdream" -ForegroundColor Yellow
+Write-Host "  skilleffect dosyasini duzenlemeyi kolaylastirmak icin tasarlanmis bir uygulamadir." -ForegroundColor Yellow
+Write-Host "  Created by Echidna" -ForegroundColor Yellow
+Write-Host "  Discord: @makeusdream" -ForegroundColor Yellow
 Write-Host "--------------------------------------------------"
 Write-Host ""
 Write-Host "--------------------------------------------------"
-Write-Host "Not: Yapmak istediginiz .pk2 turunun ismini ya da rakamini giriniz." -ForegroundColor Yellow
-Write-Host "  - resimli (1)" -ForegroundColor Yellow
-Write-Host "  - kelebek (2)" -ForegroundColor Yellow
+Write-Host "  Yapmak istediginiz .pk2 turunun ismini ya da temsili rakamini giriniz." -ForegroundColor Yellow
+Write-Host ""
+Write-Host " -resimli / 1  -> Echidna Resimli Media.pk2 (EU/CHN Marks + Wizard/Cleric Effect Off)" -ForegroundColor DarkYellow
+Write-Host " -kelebek / 2  -> Podo Kelebek Media.pk2 (EU/CHN Marks + Wizard/Cleric Effect Off)" -ForegroundColor DarkYellow
+Write-Host " -resimli100 / 3  -> Echidna Resimli Media.pk2 (CHN Marks for only 100 cap + Heuksal/Pacheon/Cold/Lightning/Fire Effect Off)" -ForegroundColor DarkYellow
+Write-Host " -medusa / 4  -> Medusa Petrify Media.pk2 (Wizard + Dagger + Heuksal + Fire Nuke's)" -ForegroundColor DarkYellow
 Write-Host "--------------------------------------------------"
 Write-Host ""
 
@@ -152,24 +95,39 @@ do {
 
     switch ($Secim) {
         "1" { $Secim = "resimli" }
-        "resimli" { $Secim = "resimli" }
+        "resimli" { }
+
         "2" { $Secim = "kelebek" }
-        "kelebek" { $Secim = "kelebek" }
+        "kelebek" { }
+
+        "3" { $Secim = "resimli100" }
+        "resimli100" { }
+		
+		"4" { $Secim = "medusa" }
+		"medusa" { }
+
         default {
             Write-Host ""
-            Write-Host "[HATA] Sadece 'resimli / 1' veya 'kelebek / 2' kodlarini girebilirsin." -ForegroundColor Red
+            Write-Host "[HATA] Sadece 'resimli / 1', 'kelebek / 2', 'resimli100 / 3' veya 'medusa / 4' kodlarini girebilirsin." -ForegroundColor Red
             Write-Host ""
             $Secim = ""
         }
     }
-} while ($Secim -ne "resimli" -and $Secim -ne "kelebek")
+} while ($Secim -notin @("resimli","kelebek","resimli100","medusa"))
 
 Clear-Host
 
+Write-Host ""
+Write-Host ""
 Write-Host "--------------------------------------------------"
-Write-Host "Sectiginiz .pk2 turu : $Secim" -ForegroundColor Green
+Write-Host "  Istediginiz .pk2 yapiliyor. Biraz bekle..." -ForegroundColor Green
 Write-Host "--------------------------------------------------"
 Write-Host ""
+Write-Host ""
+
+$SelectedRoot = Join-Path $BasePath "allcodes\$Secim"
+$CodesHE = Join-Path $SelectedRoot "he"
+$CodesSE = Join-Path $SelectedRoot "se"
 
 function Get-BuildEntries {
     param ($Path)
@@ -177,11 +135,8 @@ function Get-BuildEntries {
     $list = @()
 
     Get-Content $Path | ForEach-Object {
-
         if ($_ -match '^\s*(KOD|H)\s+') {
-
             $parts = $_ -split "`t+" | Where-Object { $_ -ne "" }
-
             if ($parts.Count -ge 3) {
                 $list += [PSCustomObject]@{
                     Mode      = $parts[0].Trim()
@@ -191,49 +146,44 @@ function Get-BuildEntries {
             }
         }
     }
-
     return $list
 }
 
 function Clear-AlchemyItemBlock {
-    param (
-        [string[]]$Lines
-    )
+    param ([string[]]$Lines)
 
-    $startIndex = ($Lines | Select-String '^\s*//Alchemy\s*:\s*Item\s*$' | Select-Object -First 1).LineNumber
+    $startMatch = $Lines | Select-String '^\s*//Alchemy\s*:\s*Item\s*$' | Select-Object -First 1
+    if (-not $startMatch) { return $Lines }
 
-    if (-not $startIndex) {
-        return $Lines
-    }
+    $startIndex = $startMatch.LineNumber - 1
+    $endIndex = -1
 
-    $startIndex--
-
-    $endIndex = $Lines.Count - 1
     for ($i = $startIndex + 1; $i -lt $Lines.Count; $i++) {
-        if ($Lines[$i] -match '^\s*//') {
-            $endIndex = $i - 1
+        if ($Lines[$i] -match '^\s*//-\s*$') {
+            $endIndex = $i
             break
         }
     }
 
-    $before = if ($startIndex -gt 0) { $Lines[0..$startIndex] } else { @($Lines[$startIndex]) }
-    $after  = if ($endIndex + 1 -lt $Lines.Count) { $Lines[($endIndex + 1)..($Lines.Count - 1)] } else { @() }
+    if ($endIndex -eq -1) { return $Lines }
 
-    return @($before + $after)
+    return @($Lines[0..$startIndex] + $Lines[($endIndex + 1)..($Lines.Count - 1)])
 }
 
 function Apply-Resimli {
     param (
         $SkillEffectPath,
         $Entries,
-        $CodesFolder
+        $CodesHE,
+        $CodesSE
     )
 
-		$OrderedEntries = @(
-			$Entries | Where-Object { $_.Mode -eq "KOD" }
-			$Entries | Where-Object { $_.Mode -eq "H" }
-		)
+	$OthersEntry = $null
 
+    $OrderedEntries = @(
+        $Entries | Where-Object { $_.Mode -eq "KOD" }
+        $Entries | Where-Object { $_.Mode -eq "H" }
+    )
 
     $Lines = Get-Content -Path $SkillEffectPath -Encoding Unicode
 
@@ -242,86 +192,42 @@ function Apply-Resimli {
         $Mode      = $entry.Mode
         $SkillName = $entry.SkillName
         $SkillCode = $entry.SkillCode
-        $SafeName  = ($SkillName -replace '[\t\r\n]', '').Trim()
+        $SafeName  = ($SkillName -replace "`t|`r|`n", '').Trim()
 
-        if ($SkillName -eq "Others") {
+		if ($SkillName -eq "Others") {
 
-			$CodeFile = Join-Path $CodesFolder "Others.txt"
-			if (-not (Test-Path $CodeFile)) {
-				Write-Host "[UYARI] others.txt bulunamadi." -ForegroundColor Red
-				Write-Host "--------------------------------------------------"
-				Write-Host ""
-				continue
-			}
-
-			$Lines = Clear-AlchemyItemBlock -Lines $Lines
-
-			$NewLines = Get-Content $CodeFile -Encoding UTF8
-
-			$InsertIndex = (
-				$Lines |
-				Select-String '^\s*//Alchemy\s*:\s*Item\s*$' |
-				Select-Object -First 1
-			).LineNumber
-
-			$Before = $Lines[0..($InsertIndex - 1)]
-			$After  = $Lines[$InsertIndex..($Lines.Count - 1)]
-
-			$Lines = @($Before + $NewLines + $After)
-
-			Write-Host "[EKLENDI] Bos Target, Warrior Buffs ve Snow/Bloody (" -ForegroundColor White -NoNewline
-			Write-Host "$ModeText" -ForegroundColor DarkYellow -NoNewline
+			Write-Host "[EKLENDI] //Alchemy : Item (" -ForegroundColor White -NoNewline
+			Write-Host "Skill Effect" -ForegroundColor DarkYellow -NoNewline
 			Write-Host ")" -ForegroundColor White
+
+			$OthersEntry = $entry
 			continue
 		}
 
         if ($Mode -eq "H") {
-            $CodeFile = Join-Path $CodesFolder "$SafeName H.txt"
+            $CodeFile = Join-Path $CodesHE "$SafeName.txt"
             $MatchRegex = '^\s*1\s+'
         }
         else {
-            $CodeFile = Join-Path $CodesFolder "$SafeName.txt"
+            $CodeFile = Join-Path $CodesSE "$SafeName.txt"
             $MatchRegex = '^(?!\s*1\s+)'
         }
 
         if (-not (Test-Path $CodeFile)) {
-			
-			$FileName = [IO.Path]::GetFileName($CodeFile)
-			
-            $ClericFile = Join-Path $CodesFolderCleric $FileName
-			if (Test-Path $ClericFile) {
-				$CodeFile = $ClericFile
-			}
-			else {
-				$WizardFile = Join-Path $CodesFolderWizard $FileName
-				if (Test-Path $WizardFile) {
-					$CodeFile = $WizardFile
-				}
-				else {
-					Write-Host "[UYARI] $FileName bulunamadi." -ForegroundColor Red
-					continue
-				}
-			}
-		}
+			continue
+        }
 
         $NewLines = Get-Content $CodeFile -Encoding UTF8
-
         $RemoveIndexes = @()
 
-		for ($i = 0; $i -lt $Lines.Count; $i++) {
-
-			$ExactCodeRegex = "(^|\s)" + [regex]::Escape($SkillCode) + "(\s|$)"
-			
-			if ($Lines[$i] -match $ExactCodeRegex -and
-				$Lines[$i] -match $MatchRegex) {
-				$RemoveIndexes += $i
-			}
-		}
-
-        if ($RemoveIndexes.Count -eq 0) {
-            Write-Host "[BULUNAMADI] $SkillCode" -ForegroundColor DarkYellow
-            continue
+        for ($i = 0; $i -lt $Lines.Count; $i++) {
+            if ($Lines[$i] -match [regex]::Escape($SkillCode) -and
+                $Lines[$i] -match $MatchRegex) {
+                $RemoveIndexes += $i
+            }
         }
+
+        if ($RemoveIndexes.Count -eq 0) { continue }
 
         $InsertIndex = $RemoveIndexes[0]
 
@@ -330,122 +236,85 @@ function Apply-Resimli {
             $Lines[$i]
         }
 
-        $Before = if ($InsertIndex -gt 0) { $Filtered[0..($InsertIndex - 1)] } else { @() }
-        $After  = if ($InsertIndex -lt $Filtered.Count) {
+        $Lines = @(
+            $Filtered[0..($InsertIndex - 1)] +
+            $NewLines +
             $Filtered[$InsertIndex..($Filtered.Count - 1)]
-        } else { @() }
+        )
 
-        $Lines = @($Before + $NewLines + $After)
-
-		$ModeText = switch ($Mode) {
+        $ModeText = switch ($Mode) {
 			"H"   { "Hit Effect" }
 			"KOD" { "Skill Effect" }
 			default { $Mode }
 		}
-		
+
 		$ModeColor = switch ($Mode) {
-			"H"   { "Yellow" }
-			"KOD" { "DarkYellow" } # Turuncuya en yakın renk
+			"H"   { "Cyan" }
+			"KOD" { "DarkYellow" }
 			default { "White" }
 		}
-		
-        Write-Host "[EKLENDI] $SkillName (" -ForegroundColor White -NoNewline
+
+		Write-Host "[EKLENDI] $SkillName (" -ForegroundColor White -NoNewline
 		Write-Host "$ModeText" -ForegroundColor $ModeColor -NoNewline
 		Write-Host ")" -ForegroundColor White
+		}
+
+		if ($OthersEntry) {
+
+			$CodeFile = Join-Path $CodesSE "Others.txt"
+			if (Test-Path $CodeFile) {
+
+				$Lines = Clear-AlchemyItemBlock -Lines $Lines
+				$NewLines = Get-Content $CodeFile -Encoding UTF8
+
+				$InsertIndex = (
+					$Lines |
+					Select-String '^\s*//Alchemy\s*:\s*Item\s*$' |
+					Select-Object -First 1
+			).LineNumber
+
+			$Lines = @(
+				$Lines[0..($InsertIndex - 1)] +
+				$NewLines +
+				$Lines[$InsertIndex..($Lines.Count - 1)]
+			)
     }
+}
 
     Set-Content -Path $SkillEffectPath -Value $Lines -Encoding Unicode
 }
 
-if ($Secim -eq "resimli") {
-
-    if (-not (Test-Path $BuildsFile)) {
-		Write-Host "--------------------------------------------------"
-        Write-Host "[HATA] codes\builds.txt bulunamadi!" -ForegroundColor Red
-		Write-Host "--------------------------------------------------"
-        exit
-    }
-
-    if (-not (Test-Path $SkillEffectFile)) {
-		Write-Host "--------------------------------------------------"
-        Write-Host "skilleffect.txt bulunamadi!" -ForegroundColor Red
-		Write-Host "--------------------------------------------------"
-		Write-Host ""
-		Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
-        exit
-    }
-
-	Write-Host "--------------------------------------------------"
-    Write-Host "builds.txt dosyasi okundu." -ForegroundColor Cyan
-    $Entries = Get-BuildEntries $BuildsFile
-
-    Write-Host "Degistirilecek skill sayisi: $($Entries.Count)" -ForegroundColor Green
-	Write-Host "--------------------------------------------------"
+if (-not (Test-Path $BuildsFile)) {
 	Write-Host ""
 	Write-Host "--------------------------------------------------"
-	Write-Host ""
-    Write-Host "skilleffect.txt duzenleniyor..." -ForegroundColor Cyan
-	Write-Host ""
-
-    Apply-Resimli `
-        -SkillEffectPath $SkillEffectFile `
-        -Entries $Entries `
-        -CodesFolder $CodesFolder
-
-	Write-Host ""
-	Write-Host "--------------------------------------------------"
-    Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundColor Green
+    Write-Host "[HATA] builds.txt bulunamadi!" -ForegroundColor Red
 	Write-Host "--------------------------------------------------"
 	Write-Host ""
+	Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
+    exit
 }
 
-if ($Secim -eq "kelebek") {
-
-    if (-not (Test-Path $BuildsFile)) {
-        Write-Host "--------------------------------------------------"
-        Write-Host "[HATA] codes\builds.txt bulunamadi!" -ForegroundColor Red
-        Write-Host "--------------------------------------------------"
-        exit
-    }
-
-    if (-not (Test-Path $SkillEffectFile)) {
-        Write-Host "--------------------------------------------------"
-        Write-Host "skilleffect.txt bulunamadi!" -ForegroundColor Red
-        Write-Host "--------------------------------------------------"
-        Write-Host ""
-        Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
-        exit
-    }
-
-    if (-not (Test-Path $CodesFolderKelebek)) {
-        Write-Host "--------------------------------------------------"
-        Write-Host "[HATA] codes\kelebek klasoru bulunamadi!" -ForegroundColor Red
-        Write-Host "--------------------------------------------------"
-        exit
-    }
-
-    Write-Host "--------------------------------------------------"
-    Write-Host "builds.txt dosyasi okundu." -ForegroundColor Cyan
-    $Entries = Get-BuildEntries $BuildsFile
-
-    Write-Host "Degistirilecek skill sayisi: $($Entries.Count)" -ForegroundColor Green
-    Write-Host "--------------------------------------------------"
-    Write-Host ""
-    Write-Host "--------------------------------------------------"
-    Write-Host ""
-    Write-Host "skilleffect.txt duzenleniyor..." -ForegroundColor Cyan
-    Write-Host ""
-
-    Apply-Resimli `
-        -SkillEffectPath $SkillEffectFile `
-        -Entries $Entries `
-        -CodesFolder $CodesFolderKelebek
-
-    Write-Host ""
-    Write-Host "--------------------------------------------------"
-    Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundColor Green
-    Write-Host "--------------------------------------------------"
-    Write-Host ""
+if (-not (Test-Path $SkillEffectFile)) {
+	Write-Host ""
+	Write-Host "--------------------------------------------------"
+    Write-Host "[HATA] skilleffect.txt bulunamadi!" -ForegroundColor Red
+	Write-Host "--------------------------------------------------"
+	Write-Host ""
+	Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
+    exit
 }
 
+$Entries = Get-BuildEntries $BuildsFile
+
+Apply-Resimli `
+    -SkillEffectPath $SkillEffectFile `
+    -Entries $Entries `
+    -CodesHE $CodesHE `
+    -CodesSE $CodesSE
+
+Write-Host ""
+Write-Host "--------------------------------------------------"
+Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundColor Green
+Write-Host "--------------------------------------------------"
+Write-Host ""
 Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
