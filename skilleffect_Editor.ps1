@@ -32,7 +32,7 @@ if (-not $env:DBF_UPDATED) {
 
         Write-Host ""
         Write-Host "--------------------------------------------" -ForegroundColor Yellow
-        Write-Host "Yeni surum bulundu! ($LatestVersion)" -ForegroundColor Green
+        Write-Host "Yeni surum bulundu! $LatestVersion" -ForegroundColor Green
         Write-Host "Mevcut surum: $CurrentVersion" -ForegroundColor DarkYellow
         Write-Host "--------------------------------------------" -ForegroundColor Yellow
         Write-Host ""
@@ -318,6 +318,7 @@ Write-Host "skilleffect.txt uzerinde istediginiz .pk2 yapilmistir." -ForegroundC
 Write-Host "--------------------------------------------------"
 Write-Host ""
 Write-Host "Cikmak icin herhangi bir tusa basabilirsin..."
+
 
 
 
